@@ -1,13 +1,12 @@
-import moment from 'moment'
 document.addEventListener('DOMContentLoaded', async () => {
-    const timedataService = getTimedataService();
     browser.alarms.onAlarm.addListener(async (alarm) => {
         if (alarm.name === 'checkTimeLimits') {
             const timeList = document.getElementById('time-list') as HTMLElement
             timeList.innerHTML = ""
-            const timeDatas = await timedataService.getAllByDay(formatDate(new Date()))
+            
+            const timeDatas = await browser.runtime.sendMessage({ type: "getTimeDataList", timestamp: new Date().getTime() }) as TimeData[]
+            if(!!timeDatas)
             timeDatas.map(async (timeData) => {
-
                 timeList.innerHTML += `
                     <div class="px-4 rounded-md ring-base-300 group">
                         <div class="flex flex-row py-2 items-center relative">
@@ -80,16 +79,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     var timing: NodeJS.Timeout
 
     startBtn.addEventListener("click", async () => {
-        console.log("dksndkjn")
-        console.log(startBtn.innerText)
-        if(startBtn.innerText === "Start")
-            startTime = Date.now()
+        if(startBtn.innerText === "Start"){
+            await browser.runtime.sendMessage({ type: "startStopWatch", timestamp: Date.now() })
+        }
         if (startBtn.innerText === "Play" || startBtn.innerText === "Start") {
             startBtn.innerText = "Pause"
             
-            browser.runtime.sendMessage({ type: "startStopWatch", time: Date.now() - startTime, startTime })
-            timing = setInterval(() => {
-                const duration = convertMsToHHMMSSObj(Date.now() - startTime)
+            timing = setInterval(async() => {
+                const response = await browser.runtime.sendMessage({ type: "checkStopWatch", timestamp: Date.now() })
+                const duration = convertMsToHHMMSSObj(response.timeSpent)
                 const hours = document.getElementById("hours") as HTMLHeadingElement
                 const minutes = document.getElementById("minutes") as HTMLHeadingElement
                 const seconds = document.getElementById("seconds") as HTMLHeadingElement
@@ -102,7 +100,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else if (startBtn.innerText === "Pause") {
             startBtn.innerText = "Play"
             clearInterval(timing)
-            browser.runtime.sendMessage({ type: "pauseStopWatch", time: Date.now() - startTime, startTime })
+            await browser.runtime.sendMessage({ type: "pauseStopWatch", timestamp: Date.now() })
         }
     })
 
@@ -114,7 +112,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             stopBtn.innerText = "Reset"
             startBtn.innerText = "Resume"
             clearInterval(timing)
-            browser.runtime.sendMessage({ type: "stopStopWatch", time: Date.now() - startTime, startTime })
+            browser.runtime.sendMessage({ type: "startStopWatch", timestamp: Date.now() })
         } else if (stopBtn.innerText === "Reset") {
             stopBtn.innerText = "Stop"
             startBtn.innerText = "Start"

@@ -41,8 +41,9 @@ export default defineContentScript({
         root.render(<App />);
 
         browser.runtime.onMessage.addListener(async (message) => {
-            const time = message.timeLimits
-            console.log(time)
+            console.log("message", message)
+            const time = message.timeData
+            
             const timeInfo = convertMillisecondsToHHMMSS(time)
             const hours = document.getElementById("hours") as HTMLHeadingElement
             const minutes = document.getElementById("minutes") as HTMLHeadingElement
@@ -52,7 +53,7 @@ export default defineContentScript({
             minutes.innerText = timeInfo.minutes
             seconds.innerText = timeInfo.seconds
 
-            return Math.random();
+            return Math.random(); 
         });
 
 
@@ -75,7 +76,7 @@ export default defineContentScript({
         //             seconds.innerText = timeInfo.seconds
         //         })
         //         // const timeLimits = await storage.getItem('local:timeLimits') as TimeData
-
+ 
         //     }
         // })
 
@@ -185,10 +186,12 @@ export default defineContentScript({
 });
 
 function convertMillisecondsToHHMMSS(milliseconds: number): { hours: string, minutes: string, seconds: string } {
-    const totalSeconds = Math.floor(milliseconds / 1000);
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
+    let seconds = Math.floor(milliseconds / 1000);
+    let minutes = Math.floor(seconds / 60);
+    let hours = Math.floor(minutes / 60);
+
+    seconds = seconds % 60;
+    minutes = minutes % 60;
 
     const formattedHours = String(hours).padStart(2, '0');
     const formattedMinutes = String(minutes).padStart(2, '0');

@@ -3,18 +3,28 @@ export interface FaviconInfo {
     faviconUrl: string;
 }
 
-export interface TimeData {
-    timeSpent: number;
-    session: number;
-    day: string
-    hostname: string;
-    faviconUrl: string;
-    created_at: number;
-    updated_at: number;
+export interface PageView {
+    id: string;
+    appId: string;
+    createdBy: string;
+    startedAt: number;
+    endedAt: number
+    query: string;
+    referrer: string
+    path: string
+    faviconUrl: string
+}
+
+export interface SessionData {
+    id: string;
+    appId: string
+    createdBy: string;
+    startedAt: number;
+    endedAt: number;
 }
 
 export interface TimeLimits {
-    timeSpent: number;
+    id: string
     maxtime: number;
     hostname: string;
     faviconUrl: string;
@@ -23,8 +33,10 @@ export interface TimeLimits {
 }
 
 export interface Watch {
+    id: string
+    appId: string
     timeSpent: number;
-    created_at: number;
-    hostname: string;
+    startedAt: number;
+    endedAt: number;
     faviconUrl: string;
 }

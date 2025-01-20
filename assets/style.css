@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import "daisyui";
-
 focus-timer{
     position: fixed;
     top: 6px;

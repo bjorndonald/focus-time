@@ -5,6 +5,7 @@
     "FaviconInfo": true,
     "InvalidMatchPattern": true,
     "MatchPattern": true,
+    "SessionData": true,
     "TimeData": true,
     "TimeDataService": true,
     "TimeLimits": true,

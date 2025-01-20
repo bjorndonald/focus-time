@@ -8002,28 +8002,33 @@ details.collapse summary::-webkit-details-marker {
 .ease-linear {
   transition-timing-function: linear;
 }
+
 focus-timer{
     position: fixed;
     top: 6px;
     right: 6px;
 }
+
 h3, .h3 {
     font-size: 38px;
     line-height: 120%;
     font-weight: 700;
     font-family: "Space Mono", sans-serif;
 }
+
 h4, .h4 {
     font-size: 28px;
     line-height: 140%;
     font-weight: 700;
     font-family: "Space Mono", sans-serif;
 }
+
 focus-timer {
     position: fixed;
     top: 6px;
     right: 6px;
 }
+
 @media (hover:hover) {
 
   .table .\*\:hover > *tr:hover,
@@ -8062,6 +8067,7 @@ focus-timer {
     background-color: var(--fallback-b3,oklch(var(--b3)/var(--tw-bg-opacity)));
   }
 }
+
 @media (prefers-color-scheme: dark) {
 
   .dark\:bg-opacity-30 {

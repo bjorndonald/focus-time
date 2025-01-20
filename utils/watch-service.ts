@@ -3,30 +3,44 @@ import type { Watch } from "./types";
 import type { ExtensionDatabase } from "./database";
 
 export interface WatchService {
-    getAll(): Promise<Watch[]>;
-    get(hostname: string): Promise<Watch | undefined>;
+    get(id: string): Promise<Watch | undefined>;
     create(info: Watch): Promise<void>;
     update(info: Watch): Promise<void>;
 }
 
 function createWatchService(_db: Promise<ExtensionDatabase>): WatchService {
     return {
-        async getAll() {
+        async create(info: Watch) {
             const db = await _db;
-            return await db.getAll("watches");
+
+            await db.add("watches", info)
         },
-        async get(hostname: string) {
+        async update(info: Watch) {
             const db = await _db;
-            return await db.get("watches", hostname);
+
+            await db.put("watches", info)
         },
-        async create(info) {
+        async get(id: string) {
             const db = await _db;
-            await db.add("watches", info);
+
+            return await db.get("watches", id)
         },
-        async update(info) {
-            const db = await _db;
-            await db.put("watches", info);
-        },
+        // async getAll() {
+        //     const db = await _db;
+        //     return await db.getAll("watches");
+        // },
+        // async get(hostname: string) {
+        //     const db = await _db;
+        //     return await db.get("watches", hostname);
+        // },
+        // async create(info) {
+        //     const db = await _db;
+        //     await db.add("watches", info);
+        // },
+        // async update(info) {
+        //     const db = await _db;
+        //     await db.put("watches", info);
+        // },
     };
 }
 

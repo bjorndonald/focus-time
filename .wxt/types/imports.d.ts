@@ -16,11 +16,11 @@ declare global {
   const defineWxtPlugin: typeof import('wxt/sandbox')['defineWxtPlugin']
   const fakeBrowser: typeof import('wxt/testing')['fakeBrowser']
   const getTimeLimitsService: typeof import('/Users/mac/dev/open_source/background-message/utils/timelimits-service')['getTimeLimitsService']
-  const getTimedataService: typeof import('/Users/mac/dev/open_source/background-message/utils/timedata-service')['getTimedataService']
+  const getTimedataService: typeof import('../../utils/pageview-service')['getTimedataService']
   const getWatchService: typeof import('/Users/mac/dev/open_source/background-message/utils/watch-service')['getWatchService']
   const openExtensionDatabase: typeof import('/Users/mac/dev/open_source/background-message/utils/database')['openExtensionDatabase']
   const registerTimeLimitsService: typeof import('/Users/mac/dev/open_source/background-message/utils/timelimits-service')['registerTimeLimitsService']
-  const registerTimedataService: typeof import('/Users/mac/dev/open_source/background-message/utils/timedata-service')['registerTimedataService']
+  const registerTimedataService: typeof import('../../utils/pageview-service')['registerTimedataService']
   const registerWatchService: typeof import('/Users/mac/dev/open_source/background-message/utils/watch-service')['registerWatchService']
   const storage: typeof import('wxt/storage')['storage']
   const useAppConfig: typeof import('wxt/client')['useAppConfig']
@@ -32,12 +32,12 @@ declare global {
   import('/Users/mac/dev/open_source/background-message/utils/database')
   // @ts-ignore
   export type { TimeDataService } from '/Users/mac/dev/open_source/background-message/utils/timedata-service'
-  import('/Users/mac/dev/open_source/background-message/utils/timedata-service')
+  import('../../utils/pageview-service')
   // @ts-ignore
   export type { TimeLimitsService } from '/Users/mac/dev/open_source/background-message/utils/timelimits-service'
   import('/Users/mac/dev/open_source/background-message/utils/timelimits-service')
   // @ts-ignore
-  export type { FaviconInfo, TimeData, TimeLimits, Watch } from '/Users/mac/dev/open_source/background-message/utils/types'
+  export type { FaviconInfo, TimeData, SessionData, TimeLimits, Watch } from '/Users/mac/dev/open_source/background-message/utils/types'
   import('/Users/mac/dev/open_source/background-message/utils/types')
   // @ts-ignore
   export type { WatchService } from '/Users/mac/dev/open_source/background-message/utils/watch-service'
