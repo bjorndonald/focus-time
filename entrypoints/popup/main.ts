@@ -1,25 +1,55 @@
+type TimeData = {
+    appId: string
+    favIconUrl: string
+    timeSpent: number
+    sessions: number
+    percentage: number
+}
+
+type TimeLimitInput = {
+    id?: string
+    url: string
+    time: number
+}
+
+type Watch = {
+    appId: string;
+    faviconUrl: string;
+    id: string;
+    startedAt: number;
+    endedAt: number;
+}
+
+type ServiceResponse<T> = {
+    data: T,
+    status: "success" | "error",
+    message: string
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     browser.alarms.onAlarm.addListener(async (alarm) => {
         if (alarm.name === 'checkTimeLimits') {
             const timeList = document.getElementById('time-list') as HTMLElement
             timeList.innerHTML = ""
             
-            const timeDatas = await browser.runtime.sendMessage({ type: "getTimeDataList", timestamp: new Date().getTime() }) as TimeData[]
-            if(!!timeDatas)
-            timeDatas.map(async (timeData) => {
+            const response = await browser.runtime.sendMessage({ type: "getTimeData", timestamp: Date.now() }) as ServiceResponse<TimeData[]>
+            if(response.status !== "success") return
+            if(!!response)
+            response.data.map(async (timeData) => {
                 timeList.innerHTML += `
                     <div class="px-4 rounded-md ring-base-300 group">
                         <div class="flex flex-row py-2 items-center relative">
                             <div class="mr-4 flex-shrink-0 w-10 h-10">
                                 <div class="bg-base-content bg-opacity-15 rounded-full p-2 relative">
-                                    <img src="${timeData.faviconUrl}" alt="Google"
-                                        class="w-6 h-6">
+                                    ${!!timeData.favIconUrl ? `<img src="${timeData.favIconUrl}" alt="Google"
+                                        class="w-6 h-6">`: ""}
+                                    
                                 </div>
                             </div>
                             <div class="flex-1 flex flex-col min-w-0">
                                 <div class="flex flex-row space-x-4 justify-between items-end">
                                     <span class="font-medium text-lg text-base-content text-opacity-80 truncate">
-                                        ${timeData.hostname}
+                                        ${timeData.appId}
                                     </span>
                                     <p class="font-mono text-opacity-80 text-base-content pb-0.5 text-sm flex-shrink-0">${convertMillisecondsToHHMMSS(timeData.timeSpent)}</p>
                                 </div>
@@ -29,12 +59,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                                         <div class="flex-shrink-0 flex-grow-0 rounded-sm transition-all ease-linear bg-secondary mr-0.5 h-full" style="background-color: rgb(197, 166, 253); width: 22.9258%;"></div>
                                     </div>
                                     <p class="text-opacity-[0.7] transition-opacity font-mono w-9 text-right text-sm">
-                                        ${((timeData.timeSpent / timeDatas.reduce((a, b) => a + b.timeSpent, 0)) * 100).toFixed(1)}%
+                                        ${timeData.percentage}%
                                     </p>
                                 </div>
 
                                 <p class="flex items-center gap-2 text-base-content text-opacity-[0.7] text-xs">
-                                    <span>${timeData.session} sessions</span>
+                                    <span>${timeData.sessions} sessions</span>
                                 </p>
                             </div>
                         </div>
@@ -59,23 +89,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         })
     })
 
-    const limitForm = document.getElementById('limit-form') as HTMLFormElement
-    limitForm.addEventListener('submit', async (e) => {
-        e.preventDefault()
-        const urlInput = document.getElementById('url-input') as HTMLInputElement
-        const timeInput = document.getElementById('time-input') as HTMLInputElement
-        const url = urlInput.value
-        const time = parseInt(timeInput.value) * 60000
-
-        urlInput.value = ''
-        timeInput.value = ''
-        alert('Time limit set successfully!')
-    })
-
     const startBtn = document.getElementById("start-btn")
     if (!startBtn) return
 
-    var startTime: number
     var timing: NodeJS.Timeout
 
     startBtn.addEventListener("click", async () => {
@@ -86,8 +102,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             startBtn.innerText = "Pause"
             
             timing = setInterval(async() => {
-                const response = await browser.runtime.sendMessage({ type: "checkStopWatch", timestamp: Date.now() })
-                const duration = convertMsToHHMMSSObj(response.timeSpent)
+                const response = await browser.runtime.sendMessage({ type: "checkStopWatch", timestamp: Date.now() }) as ServiceResponse<Watch>
+                const duration = convertMsToHHMMSSObj(response.data.endedAt - response.data.startedAt)
                 const hours = document.getElementById("hours") as HTMLHeadingElement
                 const minutes = document.getElementById("minutes") as HTMLHeadingElement
                 const seconds = document.getElementById("seconds") as HTMLHeadingElement
@@ -100,7 +116,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else if (startBtn.innerText === "Pause") {
             startBtn.innerText = "Play"
             clearInterval(timing)
-            await browser.runtime.sendMessage({ type: "pauseStopWatch", timestamp: Date.now() })
+            await browser.runtime.sendMessage({ type: "pauseStopWatch" })
         }
     })
 

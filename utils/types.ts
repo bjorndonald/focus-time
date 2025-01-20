@@ -5,6 +5,7 @@ export interface FaviconInfo {
 
 export interface PageView {
     id: string;
+    day: number
     appId: string;
     createdBy: string;
     startedAt: number;
@@ -17,7 +18,9 @@ export interface PageView {
 
 export interface SessionData {
     id: string;
+    day: number
     appId: string
+    faviconUrl: string
     createdBy: string;
     startedAt: number;
     endedAt: number;
@@ -27,15 +30,14 @@ export interface TimeLimits {
     id: string
     maxtime: number;
     hostname: string;
-    faviconUrl: string;
-    created_at: number;
-    updated_at: number;
+    faviconUrl: string | undefined;
+    createdAt: number;
+    updatedAt: number;
 }
 
 export interface Watch {
     id: string
     appId: string
-    timeSpent: number;
     startedAt: number;
     endedAt: number;
     faviconUrl: string;

@@ -2,10 +2,10 @@
 <html>
 
 <head>
-  <script type="module" src="http://localhost:3000/@vite/client"></script>
-<script src="http://localhost:3000/@id/virtual:wxt-html-plugins" type="module"></script>
+  <script type="module" src="http://localhost:3001/@vite/client"></script>
+<script src="http://localhost:3001/@id/virtual:wxt-html-plugins" type="module"></script>
     <title>Focus Time</title>
-    <link rel="stylesheet" href="http://localhost:3000/entrypoints/popup/style.css">  <script type="module" crossorigin="" src="/chunks/popup-CoZpLPxW.js"></script>
+    <link rel="stylesheet" href="http://localhost:3001/entrypoints/popup/style.css">  <script type="module" crossorigin="" src="/chunks/popup-DFFmHzEu.js"></script>
 </head>
 
 <body class="w-[448px] h-[448px]">
@@ -30,7 +30,7 @@
         <div role="tablist" class="tabs tabs-bordered">
             <div id="usage" class="tab tab-active" role="tab">Usage Stats</div>
             <div id="stopwatch" class="tab" role="tab">Stopwatch</div>
-            <div id="limits" class="tab" role="tab">Time Limits</div>
+        
         </div>
         <div class="grow relative">
             <div id="usage" class="absolute tab-pane active inset-0 overflow-y-auto p-4">
@@ -69,21 +69,12 @@
                 </div>
 
             </div>
-            <div id="limits" class="absolute tab-pane inset-0 overflow-y-auto p-4">
-                <ul id="limit-list"></ul>
-
-                <form class="gap-2" id="limit-form">
-                    <input class="input" type="text" id="url-input" placeholder="Enter website URL" required>
-                    <input type="number" id="time-input" placeholder="Enter time limit (minutes)" required>
-                    <button class="btn btn-sm btn-primary" type="submit">Set Limit</button>
-                </form>
-            </div>
         </div>
     </div>
 
 
 
-    <script type="module" src="http://localhost:3000/entrypoints/popup/main.ts"></script>
+    <script type="module" src="http://localhost:3001/entrypoints/popup/main.ts"></script>
 </body>
 
 </html>

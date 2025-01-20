@@ -11,7 +11,6 @@ function createPageViewService(_db: Promise<ExtensionDatabase>): PageViewService
     return {
         async create(info: PageView) {
             const db = await _db;
-            
             await db.add("pageviews", info)
         },
         async get(id: string) {

@@ -7,6 +7,7 @@ export interface TimeLimitsService {
     get(hostname: string): Promise<TimeLimits | undefined>;
     create(info: TimeLimits): Promise<void>;
     update(info: TimeLimits): Promise<void>;
+    delete(hostname: string): Promise<void>
 }
 
 function createTimeLimitsService(_db: Promise<ExtensionDatabase>): TimeLimitsService {
@@ -26,6 +27,10 @@ function createTimeLimitsService(_db: Promise<ExtensionDatabase>): TimeLimitsSer
         async update(info) {
             const db = await _db;
             await db.put("timelimits", info);
+        },
+        async delete(hostname: string) {
+            const db = await _db;
+            await db.delete("timelimits", hostname);
         },
     };
 }
