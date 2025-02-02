@@ -26,13 +26,22 @@ type ServiceResponse<T> = {
     message: string
 }
 
+// const url = browser.runtime.getURL('./../background/index.html');
+// console.log(url)
+
 document.addEventListener('DOMContentLoaded', async () => {
+    const dashboardLink = document.getElementById("dashboard-link")
+    dashboardLink?.addEventListener("click", async () => {
+        const response = await browser.runtime.sendMessage({ type: "openDashboard", timestamp: Date.now() })
+    })
+
     browser.alarms.onAlarm.addListener(async (alarm) => {
         if (alarm.name === 'checkTimeLimits') {
             const timeList = document.getElementById('time-list') as HTMLElement
             timeList.innerHTML = ""
             
             const response = await browser.runtime.sendMessage({ type: "getTimeData", timestamp: Date.now() }) as ServiceResponse<TimeData[]>
+           
             if(response.status !== "success") return
             if(!!response)
             response.data.map(async (timeData) => {
@@ -56,7 +65,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                                 <div class="flex flex-row space-x-2 items-center">
                                     <div class="relative h-1 flex-1 bg-black bg-opacity-15 dark:bg-opacity-30 rounded-sm flex">
-                                        <div class="flex-shrink-0 flex-grow-0 rounded-sm transition-all ease-linear bg-secondary mr-0.5 h-full" style="background-color: rgb(197, 166, 253); width: 22.9258%;"></div>
+                                        <div class="flex-shrink-0 flex-grow-0 rounded-sm transition-all ease-linear bg-secondary mr-0.5 h-full" style="background-color: rgb(197, 166, 253); width: ${timeData.percentage}%;"></div>
                                     </div>
                                     <p class="text-opacity-[0.7] transition-opacity font-mono w-9 text-right text-sm">
                                         ${timeData.percentage}%
@@ -116,7 +125,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else if (startBtn.innerText === "Pause") {
             startBtn.innerText = "Play"
             clearInterval(timing)
-            await browser.runtime.sendMessage({ type: "pauseStopWatch" })
+            await browser.runtime.sendMessage({ type: "pauseStopWatch", timestamp: Date.now() })
         }
     })
 

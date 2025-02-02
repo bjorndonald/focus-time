@@ -5,6 +5,7 @@ declare module "wxt/browser" {
   export type PublicPath =
     | "/background.js"
     | "/content-scripts/content.js"
+    | "/dashboard.html"
     | "/icons/apple-touch-icon-114x114.png"
     | "/icons/apple-touch-icon-120x120.png"
     | "/icons/apple-touch-icon-144x144.png"

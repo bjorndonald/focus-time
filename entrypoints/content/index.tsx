@@ -56,58 +56,6 @@ export default defineContentScript({
             return Math.random(); 
         });
 
-
-
-        // browser.alarms.onAlarm.addListener(async (alarm) => {
-        //     if (alarm.name === 'checkTimeLimits') {
-        //         const timeData = await storage.getItem('local:timeData') as TimeData
-        //         const timeLimits = await storage.getItem('local:timeLimits') as TimeData
-
-        //         const allTabs = await browser.tabs.query({});
-        //         allTabs.map(async (tab) => {
-        //             const time = timeLimits[tab.url || ''] ?? 5 * 60 * 1000
-        //             const timeInfo = convertMillisecondsToHHMMSS(time)
-        //             const hours = document.getElementById("hours") as HTMLHeadingElement
-        //             const minutes = document.getElementById("minutes") as HTMLHeadingElement
-        //             const seconds = document.getElementById("seconds") as HTMLHeadingElement
-        //             if (!hours && !minutes && !seconds) return
-        //             hours.innerText = timeInfo.hours
-        //             minutes.innerText = timeInfo.minutes
-        //             seconds.innerText = timeInfo.seconds
-        //         })
-        //         // const timeLimits = await storage.getItem('local:timeLimits') as TimeData
- 
-        //     }
-        // })
-
-        // browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-        //     console.log("tabId", tabId)
-        //     if (changeInfo.status === 'complete') {
-        //         if (tab.active){
-        //             timer.style.visibility = 'visible'
-        //         } else {
-        //             timer.style.visibility = 'none'
-        //         }
-        //     }
-        // })
-
-        // browser.tabs.onActivated.addListener(async (activeInfo) => {
-        //     const tab = await browser.tabs.get(activeInfo.tabId)
-        //     console.log("tab", tab)
-        //             timer.style.visibility = 'visible'
-        //             const timeLimits = await storage.getItem('local:timeLimits') as TimeData
-        //             const time = timeLimits[tab.url || '']
-        //             const timeInfo = convertMillisecondsToHHMMSS(time)
-        //             const hours = document.getElementById("hours") as HTMLHeadingElement
-        //             const minutes = document.getElementById("minutes") as HTMLHeadingElement
-        //             const seconds = document.getElementById("seconds") as HTMLHeadingElement
-        //             if (!hours && !minutes && !seconds) return
-        //             hours.innerText = timeInfo.hours
-        //             minutes.innerText = timeInfo.minutes
-        //             seconds.innerText = timeInfo.seconds
-
-        // })
-
         let isDragging = false; // Flag to check if dragging
         let offsetX: number, offsetY: number;
 
@@ -181,7 +129,7 @@ export default defineContentScript({
             },
         });
 
-        // ui.mount();
+        ui.mount();
     },
 });
 

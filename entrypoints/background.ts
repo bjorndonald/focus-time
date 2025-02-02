@@ -22,9 +22,10 @@ type TimeLimitInput = {
 
 export default defineBackground(() => {
     const db = openExtensionDatabase();
-    var sessionId = ""
+    var currentTab: Tabs.Tab | null = null
     var watchId = ""
     const pageViewService = registerPageViewService(db)
+    // const sessionService = registerSessionService(db)
     const sessionService = registerSessionService(db)
     const watchService = registerWatchService(db)
     const faviconService = registerFavIconService(db)
@@ -33,58 +34,51 @@ export default defineBackground(() => {
     browser.alarms.create('checkTimeLimits', { periodInMinutes: 1 / 60 })
 
     browser.tabs.onActivated.addListener(async (activeInfo) => {
-        browser.alarms.onAlarm.removeListener(() => { })
-        const tab = await browser.tabs.get(activeInfo.tabId)
+       const tab = await browser.tabs.get(activeInfo.tabId)
+       currentTab = tab
         createPageView(tab)
         createSession(tab)
-        console.log("activated")
-        browser.alarms.onAlarm.addListener(async (alarm) => {
-            if (alarm.name === 'checkTimeLimits') {
-                if (tab.active) {
-                    console.log("activated", tab.url)
-                    updateSession(tab)
-                }
-            }
-        })
     })
 
     browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         if (changeInfo.status === 'complete') {
-            browser.alarms.onAlarm.removeListener(() => { })
+            if(!tab.active) return
+            currentTab = tab
+            console.log("updated")
             createPageView(tab)
-            createSession(tab)
-            browser.alarms.onAlarm.addListener(async (alarm) => {
-                if (alarm.name === 'checkTimeLimits') {
-                    if (tab.active) {
-                       updateSession(tab)
-                    }
-                }
-            })
+            createSession(tab) 
+        }
+    })
+
+    browser.alarms.onAlarm.addListener(async (alarm) => {
+        if (alarm.name === 'checkTimeLimits') {
+            if(!currentTab) return
+                
+            updateSession(currentTab)
         }
     })
 
     async function createPageView(tab: Tabs.Tab) {
         const url = tab.url ?? tab.pendingUrl;
-        console.log(url)
         const faviconUrl = tab.favIconUrl;
-        console.log(faviconUrl)
+        console.log(tab)
         if (!url) return;
+        console.log(url)
+        // @ts-ignore
+        if (!tab.selected) return
 
         const hostname = new URL(url).hostname;
-        if(!!faviconUrl)
-        await faviconService.create({
-            faviconUrl,
-            hostname
-        })
+        
+        const pageView = await pageViewService.getByAppId(hostname)
+        
+        const id = crypto.randomUUID()
         
         await pageViewService.create({
-            id: crypto.randomUUID(),
-            appId: hostname,
+            id:  pageView ? pageView.id: id,
+            count: pageView ? pageView.count + 1 : 1,
+            appId: pageView ? pageView.appId  : hostname,
             day: new Date().setHours(0, 0, 0, 0),
-            createdBy: "bjorn",
-            startedAt: Date.now(),
-            endedAt: Date.now(),
-            faviconUrl: faviconUrl!,
+            faviconUrl: pageView? pageView.faviconUrl: faviconUrl!,
             path: new URL(url).pathname,
             query: new URL(url).search,
             referrer: new URL(url).origin
@@ -93,26 +87,25 @@ export default defineBackground(() => {
 
     async function createSession(tab: Tabs.Tab) {
         const url = tab.url ?? tab.pendingUrl;
-        console.log(url)
         const faviconUrl = tab.favIconUrl;
-        console.log(faviconUrl)
         if (!url) return;
-       
+
         const hostname = new URL(url).hostname;
         if (!!faviconUrl)
-        await faviconService.create({
-            faviconUrl,
-            hostname
-        })
-
+            await faviconService.create({
+                faviconUrl,
+                hostname
+            })
+        
+        const id = crypto.randomUUID()
         await sessionService.create({
-            id: crypto.randomUUID(),
+            id,
             faviconUrl: faviconUrl!,
             day: new Date().setHours(0, 0, 0, 0),
             appId: hostname,
             createdBy: "bjorn",
             startedAt: Date.now(),
-            endedAt: Date.now(),
+            endedAt: Date.now()+10,
         })
     }
 
@@ -120,21 +113,37 @@ export default defineBackground(() => {
         const url = tab.url ?? tab.pendingUrl;
         if (!url) return;
         const hostname = new URL(url).hostname;
-        const currentSession = await sessionService.getLast(new Date().setHours(0, 0, 0, 0))
+        const currentSession = await sessionService.getLast()
         if (!currentSession) return
 
-        await sessionService.update({
-            id: currentSession.id,
-            faviconUrl: currentSession.faviconUrl,
-            day: new Date().setHours(0, 0, 0, 0),
-            appId: hostname,
-            createdBy: currentSession.createdBy,
-            startedAt: currentSession.startedAt,
-            endedAt: Date.now(),
-        })
+        if(currentSession.appId === hostname){
+            await sessionService.update({
+                id: currentSession.id,
+                faviconUrl: tab.favIconUrl!,
+                day: currentSession.day,
+                appId: currentSession.appId,
+                createdBy: currentSession.createdBy,
+                startedAt: currentSession.startedAt,
+                endedAt: Date.now(),
+            })
+        } else {
+           
+            const newSession = await sessionService.getLastForAppId(hostname)
+            if (!newSession) return
+            
+            await sessionService.update({
+                id: newSession.id,
+                faviconUrl: tab.favIconUrl!,
+                day: newSession.day,
+                appId: newSession.appId,
+                createdBy: newSession.createdBy,
+                startedAt: newSession.startedAt,
+                endedAt: Date.now(),
+            })
+        }
     }
 
-    
+
 
     // browser.alarms.onAlarm.addListener(async (alarm) => {
     //     if (alarm.name === 'checkTimeLimits') {
@@ -150,13 +159,13 @@ export default defineBackground(() => {
 
     const getTimeData = async () => {
         const allSessions = await sessionService.getAllToday(new Date().setHours(0, 0, 0, 0))
-        if (!allSessions) return
+        const allPageViews = await pageViewService.getAllToday(new Date().setHours(0, 0, 0, 0))
+        if (!allSessions || !allPageViews) return
         var timeDataList: TimeData[] = [] as TimeData[]
-        allSessions.map((x) => {
+        allSessions.map( (x) => {
             const timeData = timeDataList.find((y) => y.appId === x.appId)
             if (timeData) {
                 timeData.timeSpent += x.endedAt - x.startedAt
-                timeData.sessions++
             } else {
                 timeDataList.push({
                     appId: x.appId,
@@ -170,12 +179,14 @@ export default defineBackground(() => {
 
         const total = timeDataList.reduce((a, b) => a + b.timeSpent, 0)
 
-        timeDataList = timeDataList.map((x) => {
+        timeDataList = await Promise.all(timeDataList.map(async (x) => {
+            const pageView = await pageViewService.getByAppId(x.appId)
             return {
                 ...x,
+                sessions: pageView?.count || 1,
                 percentage: (x.timeSpent / total) * 100
             }
-        })
+        }))
 
         return timeDataList
     }
@@ -209,6 +220,13 @@ export default defineBackground(() => {
         type: string,
         data: TimeLimitInput
     }) => {
+        if (message.type == "openDashboard") {
+            await browser.tabs.create({
+                url: browser.runtime.getURL("/dashboard.html"),
+                active: true,
+            });
+        }
+
         if (message.type == "startStopWatch") {
             await createStopWatch()
             return {
@@ -241,7 +259,7 @@ export default defineBackground(() => {
         if (message.type == "stopStopWatch") {
             watchId = ''
             return {
-                status: "success", message: "Stopwatch started"
+                status: "success", message: "Stopwatch stopped"
             }
         }
 

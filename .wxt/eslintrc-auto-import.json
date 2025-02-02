@@ -17,6 +17,7 @@
     "browser": true,
     "createIframeUi": true,
     "createIntegratedUi": true,
+    "createSessionService": true,
     "createShadowRootUi": true,
     "defineAppConfig": true,
     "defineBackground": true,

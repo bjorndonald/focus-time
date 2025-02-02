@@ -16,6 +16,6 @@ export default defineConfig({
         }
     },
     runner: {
-        startUrls: ["https://x.com"],
+        startUrls: ["https://x.com", "https://kaggle.com"],
     },
 });

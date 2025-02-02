@@ -7,9 +7,7 @@ export interface PageView {
     id: string;
     day: number
     appId: string;
-    createdBy: string;
-    startedAt: number;
-    endedAt: number
+    count: number;
     query: string;
     referrer: string
     path: string

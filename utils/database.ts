@@ -10,18 +10,19 @@ value: FaviconInfo;
         key: string;
        value: PageView;
         indexes: {
-            // 'idx_page_views_startedAt': number;
-            // 'idx_page_views_endedAt': number;
-            'idx_page_views_day': number;
+            'idx_page_views_app_id': string;
+            'idx_page_views_startedAt': number;
+            // 'idx_page_views_day': number;
         }
     },
     sessiondata: {
         key: string;
         value: SessionData;
         indexes: {
-            // 'idx_session_startedAt': number;
-            // 'idx_session_endedAt': number;
+            'idx_session_startedAt': number;
+            'idx_session_endedAt': number;
             'idx_session_day': number;
+            'idx_session_app_id': number;
         };
     },
     timelimits: {
@@ -45,15 +46,18 @@ export type ExtensionDatabase = IDBPDatabase<ExtensionDatabaseSchema>;
 export function openExtensionDatabase(): Promise<ExtensionDatabase> {
     return openDB<ExtensionDatabaseSchema>("time-database", 1, {
         upgrade(database) {
-            const pageviews = database.createObjectStore("pageviews", { keyPath: "id" });
-            // pageviews.createIndex("idx_page_views_endedAt", "endedAt")
-            // pageviews.createIndex("idx_page_views_startedAt", "startedAt")
-            pageviews.createIndex("idx_page_views_day", "day")
+            const pageviews = database.createObjectStore("pageviews", {
+                keyPath: "id",
 
-            const sessiondata = database.createObjectStore("sessiondata", { keyPath: "id" });
-            // sessiondata.createIndex("idx_session_endedAt", "endedAt")
-            // sessiondata.createIndex("idx_session_startedAt", "startedAt")
-            sessiondata.createIndex("idx_session_day", "day")
+            });
+            pageviews.createIndex("idx_page_views_app_id", "appId", {
+                unique: true
+            })
+            pageviews.createIndex("idx_page_views_startedAt", "startedAt")
+
+            const sessiondata = database.createObjectStore("sessiondata", { keyPath: "startedAt"});
+            sessiondata.createIndex("idx_session_startedAt", "startedAt")
+            sessiondata.createIndex("idx_session_app_id", "appId")
     
             database.createObjectStore("timelimits", { keyPath: "id" });
             database.createObjectStore("favicons", { keyPath: "hostname" });

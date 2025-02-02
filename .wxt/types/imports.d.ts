@@ -7,6 +7,7 @@ declare global {
   const browser: typeof import('wxt/browser')['browser']
   const createIframeUi: typeof import('wxt/client')['createIframeUi']
   const createIntegratedUi: typeof import('wxt/client')['createIntegratedUi']
+  const createSessionService: typeof import('/Users/mac/dev/open_source/background-message/utils/session-service')['createSessionService']
   const createShadowRootUi: typeof import('wxt/client')['createShadowRootUi']
   const defineAppConfig: typeof import('wxt/sandbox')['defineAppConfig']
   const defineBackground: typeof import('wxt/sandbox')['defineBackground']
