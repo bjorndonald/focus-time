@@ -1,0 +1,6 @@
+export const PERMANENT_LIMIT = "permanent"
+export const SCHEDULED_LIMIT = "scheduled"
+export const DAILY_LIMIT = "daily"
+export const SESSION_LIMIT = "session"
+export const BLOCK_FURTHER_USAGE = "block"
+export const SEND_NOTIFICATION = "notification"

@@ -24,11 +24,19 @@ export interface SessionData {
     endedAt: number;
 }
 
+// Limit types: permanent, certain time, daily limit, session
 export interface TimeLimits {
     id: string
-    maxtime: number;
-    hostname: string;
-    faviconUrl: string | undefined;
+    type: string
+    apps: string[];
+    startTime: string; 
+    endTime: string;
+    days: string[];
+    name: string;
+    action: string;
+    active: boolean;
+    limitPeriod: number 
+    coolDownPeriod: number 
     createdAt: number;
     updatedAt: number;
 }
@@ -39,4 +47,17 @@ export interface Watch {
     startedAt: number;
     endedAt: number;
     faviconUrl: string;
+}
+
+export type TimeLimitInput = {
+    id: string
+    active: boolean
+    apps: string[]
+    type: string
+    startTime: string;
+    endTime: string;
+    days: string[];
+    name: string;
+    limitPeriod: number
+    coolDownPeriod: number
 }

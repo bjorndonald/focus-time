@@ -27,3 +27,8 @@ focus-timer {
     top: 6px;
     right: 6px;
 }
+
+input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    /* Invert the icon color to make it visible on dark background */
+}

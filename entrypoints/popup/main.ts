@@ -7,9 +7,16 @@ type TimeData = {
 }
 
 type TimeLimitInput = {
-    id?: string
-    url: string
-    time: number
+    id: string
+    active: boolean
+    apps: string[]
+    type: string
+    startTime: string;
+    endTime: string;
+    days: string[];
+    name: string;
+    coolDownPeriod: number
+    limitPeriod: number
 }
 
 type Watch = {

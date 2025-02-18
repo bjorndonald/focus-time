@@ -6,6 +6,8 @@ import { Tabs } from 'wxt/browser';
 import { storage } from 'wxt/storage'
 import { registerFavIconService } from '@/utils/favicon-service';
 
+const excludeList = ['cahlkginjdfkbnjbgojoligicobgakfp', 'newtab']
+
 type TimeData = {
     appId: string
     favIconUrl: string
@@ -15,9 +17,17 @@ type TimeData = {
 }
 
 type TimeLimitInput = {
-    id?: string
-    url: string
-    time: number
+    id: string
+    active: boolean
+    apps: string[]
+    type: string
+    startTime: string;
+    endTime: string;
+    days: string[];
+    name: string;
+    action: string
+    coolDownPeriod: number
+    limitPeriod: number
 }
 
 export default defineBackground(() => {
@@ -34,6 +44,7 @@ export default defineBackground(() => {
     browser.alarms.create('checkTimeLimits', { periodInMinutes: 1 / 60 })
 
     browser.tabs.onActivated.addListener(async (activeInfo) => {
+
        const tab = await browser.tabs.get(activeInfo.tabId)
        currentTab = tab
         createPageView(tab)
@@ -44,7 +55,6 @@ export default defineBackground(() => {
         if (changeInfo.status === 'complete') {
             if(!tab.active) return
             currentTab = tab
-            console.log("updated")
             createPageView(tab)
             createSession(tab) 
         }
@@ -61,14 +71,12 @@ export default defineBackground(() => {
     async function createPageView(tab: Tabs.Tab) {
         const url = tab.url ?? tab.pendingUrl;
         const faviconUrl = tab.favIconUrl;
-        console.log(tab)
         if (!url) return;
-        console.log(url)
         // @ts-ignore
         if (!tab.selected) return
 
         const hostname = new URL(url).hostname;
-        
+        if(excludeList.includes(hostname)) return
         const pageView = await pageViewService.getByAppId(hostname)
         
         const id = crypto.randomUUID()
@@ -91,6 +99,7 @@ export default defineBackground(() => {
         if (!url) return;
 
         const hostname = new URL(url).hostname;
+        if (excludeList.includes(hostname)) return
         if (!!faviconUrl)
             await faviconService.create({
                 faviconUrl,
@@ -100,7 +109,7 @@ export default defineBackground(() => {
         const id = crypto.randomUUID()
         await sessionService.create({
             id,
-            faviconUrl: faviconUrl!,
+            faviconUrl: (await faviconService.get(hostname))?.faviconUrl ?? "",
             day: new Date().setHours(0, 0, 0, 0),
             appId: hostname,
             createdBy: "bjorn",
@@ -113,13 +122,14 @@ export default defineBackground(() => {
         const url = tab.url ?? tab.pendingUrl;
         if (!url) return;
         const hostname = new URL(url).hostname;
+        if (excludeList.includes(hostname)) return
         const currentSession = await sessionService.getLast()
         if (!currentSession) return
 
         if(currentSession.appId === hostname){
             await sessionService.update({
                 id: currentSession.id,
-                faviconUrl: tab.favIconUrl!,
+                faviconUrl: (await faviconService.get(hostname))?.faviconUrl ?? "",
                 day: currentSession.day,
                 appId: currentSession.appId,
                 createdBy: currentSession.createdBy,
@@ -133,7 +143,7 @@ export default defineBackground(() => {
             
             await sessionService.update({
                 id: newSession.id,
-                faviconUrl: tab.favIconUrl!,
+                faviconUrl: (await faviconService.get(hostname))?.faviconUrl ?? "",
                 day: newSession.day,
                 appId: newSession.appId,
                 createdBy: newSession.createdBy,
@@ -176,13 +186,14 @@ export default defineBackground(() => {
                 })
             }
         })
-
         const total = timeDataList.reduce((a, b) => a + b.timeSpent, 0)
 
         timeDataList = await Promise.all(timeDataList.map(async (x) => {
             const pageView = await pageViewService.getByAppId(x.appId)
+            const faviconObj = await faviconService.get(x.appId)
             return {
                 ...x,
+                favIconUrl: faviconObj?.faviconUrl ?? "",
                 sessions: pageView?.count || 1,
                 percentage: (x.timeSpent / total) * 100
             }
@@ -218,6 +229,7 @@ export default defineBackground(() => {
 
     browser.runtime.onMessage.addListener(async (message: {
         type: string,
+        id: string,
         data: TimeLimitInput
     }) => {
         if (message.type == "openDashboard") {
@@ -263,13 +275,41 @@ export default defineBackground(() => {
             }
         }
 
+        if (message.type === "getFavIcon"){
+            
+            const favicon = await faviconService.get(message.id)
+            return {
+                status: "success", data: favicon?.faviconUrl
+            }
+        }
+
+        if (message.type == "getListOfApps") {
+            const pageViews = await pageViewService.getAllApps()
+            return {
+                status: "success", data: pageViews
+            }
+        } 
+
+        if (message.type == "getTimeLimits") {
+            const timeLimits = await timeLimitService.getAll();
+            return {
+                status: "success", data: timeLimits, message: "Time limits retrieved"
+            }
+        }
+
         if (message.type == "addTimeLimit") {
-            const favicon = await faviconService.get(message.data.url)
             await timeLimitService.create({
-                faviconUrl: favicon?.faviconUrl,
-                hostname: message.data.url,
+                active: true,
+                apps: message.data.apps,
+                days: message.data.days,
                 id: crypto.randomUUID(),
-                maxtime: message.data.time,
+                limitPeriod: message.data.limitPeriod,
+                coolDownPeriod: message.data.coolDownPeriod,
+                name: message.data.name,
+                type: message.data.type,
+                action: message.data.action,
+                startTime: message.data.startTime,
+                endTime: message.data.endTime,
                 createdAt: Date.now(),
                 updatedAt: Date.now(),
             })
@@ -278,19 +318,25 @@ export default defineBackground(() => {
             }
         }
         if (message.type == "editTimeLimit") {
-            const timeLimit = await timeLimitService.get(message.data.url)
+            const timeLimit = await timeLimitService.get(message.data.id)
             if (!timeLimit) return {
                 status: "error",
                 message: "Time limit doesn't exist",
             }
             if (!timeLimit) return
 
-            const favicon = await faviconService.get(message.data.url)
-            await timeLimitService.update({
-                faviconUrl: favicon?.faviconUrl,
-                hostname: timeLimit.hostname,
+           await timeLimitService.update({
+                active: message.data.active,
+               apps: message.data.apps,
+                days: message.data.days,
+                limitPeriod: message.data.coolDownPeriod,
+                coolDownPeriod: message.data.coolDownPeriod,
+                name: message.data.name,
+                action: message.data.action,
+                type: message.data.type,
+                startTime: message.data.startTime,
+                endTime: message.data.endTime,
                 id: timeLimit.id,
-                maxtime: message.data.time,
                 createdAt: timeLimit.createdAt,
                 updatedAt: Date.now(),
             })
@@ -299,9 +345,25 @@ export default defineBackground(() => {
             }
         }
         if (message.type == "deleteTimeLimit") {
-            await timeLimitService.delete(message.data.url)
+            await timeLimitService.delete(message.data.id)
             return {
                 status: "success", message: "Time limit deleted"
+            }
+        }
+        if (message.type == "toggleTimeLimit") {
+            const timeLimit = await timeLimitService.get(message.data.id)
+            if (!timeLimit) return {
+                status: "error",
+                message: "Time limit doesn't exist",
+            }
+            if (!timeLimit) return
+
+            await timeLimitService.update({
+                ...timeLimit,
+                active: !timeLimit.active,
+            })
+            return {
+                status: "success", message: "Time limit updated"
             }
         }
         if (message.type == "getTimeData") {

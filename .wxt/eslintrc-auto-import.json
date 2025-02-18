@@ -10,6 +10,7 @@
     "PageViewService": true,
     "SessionData": true,
     "SessionDataService": true,
+    "TimeLimitInput": true,
     "TimeLimits": true,
     "TimeLimitsService": true,
     "Watch": true,

@@ -8,6 +8,7 @@ export interface PageViewService {
     getByAppId(appId: string): Promise<PageView | undefined>;
     getCountByAppId(appId: string): Promise<number>;
     getAllToday(day: number): Promise<PageView[] | undefined>;
+    getAllApps(): Promise<PageView[] | undefined>;
 }
 
 function createPageViewService(_db: Promise<ExtensionDatabase>): PageViewService {
@@ -50,48 +51,25 @@ function createPageViewService(_db: Promise<ExtensionDatabase>): PageViewService
             const count = await index.count(appId);
 
             return count;
+        },
+        async getAllApps() {
+            const db = await _db;
+            const transaction = db.transaction("pageviews", "readonly");
+            const objectStore = transaction.objectStore("pageviews");
+            const index = objectStore.index("idx_page_views_app_id");
+            const all = await index.getAll();
+            const set = new Set<string>()
+            const result: PageView[] = []
+            all.map((x, i) => {
+                if (!set.has(x.appId)){
+                    result.push(x)
+                }
+                set.add(x.appId);
+                
+            })
+
+            return result;
         }
-        // async getAllByDay(day: string) {
-        //     const db = await _db;
-        //     const timeDataArr = await db.getAll("timedata")
-        //     const dayData = timeDataArr.filter((timeData) => timeData.day === day)
-
-        //     return dayData; 
-        // },
-        // async getFirstOfDay(day: string, hostname: string) {
-        //     const db = await _db;
-        //     const timeDataArr = await db.getAll("timedata")
-        //     timeDataArr.filter((timeData) => timeData.day === day && timeData.hostname === hostname)
-        //     return await timeDataArr[0];
-        // },
-        // async getLast(hostname) {
-        //     const db = await _db;
-        //     const timeDataArr = await db.getAll("timedata");
-        //     const data = timeDataArr.filter((timeData) => timeData.hostname === hostname)
-        //     return data[data.length - 1];
-        // },
-        // async get(hostname: string, day: string) { 
-        //     const db = await _db;
-        //     const list = await db.getAll("timedata")
-        //     const filtered = list.filter((timeData) => timeData.day === day && timeData.hostname === hostname)
-        //     return filtered[0];
-        // },
-        // async create(info) {
-        //     const db = await _db;
-
-        //     if(await db.get("timedata", info.hostname)) {
-        //         const response = await db.put("timedata", info);
-        //         console.log(response)
-        //     } else {
-        //         const response = await db.add("timedata", info);
-        //         console.log(response)
-        //     }
-        // },
-
-        // async update(info) {
-        //     const db = await _db;
-        //     await db.put("timedata", info);
-        // },
     };
 }
 

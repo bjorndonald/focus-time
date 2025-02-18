@@ -4,10 +4,10 @@ import type { ExtensionDatabase } from "./database";
 
 export interface TimeLimitsService {
     getAll(): Promise<TimeLimits[]>;
-    get(hostname: string): Promise<TimeLimits | undefined>;
+    get(id: string): Promise<TimeLimits | undefined>;
     create(info: TimeLimits): Promise<void>;
     update(info: TimeLimits): Promise<void>;
-    delete(hostname: string): Promise<void>
+    delete(id: string): Promise<void>
 }
 
 function createTimeLimitsService(_db: Promise<ExtensionDatabase>): TimeLimitsService {
@@ -16,9 +16,9 @@ function createTimeLimitsService(_db: Promise<ExtensionDatabase>): TimeLimitsSer
             const db = await _db;
             return await db.getAll("timelimits");
         },
-        async get(hostname: string) {
+        async get(id?: string) {
             const db = await _db;
-            return await db.get("timelimits", hostname);
+            return await db.get("timelimits", id ?? "");
         },
         async create(info) {
             const db = await _db;

@@ -48,7 +48,7 @@ declare global {
   export type { TimeLimitsService } from '/Users/mac/dev/open_source/background-message/utils/timelimits-service'
   import('/Users/mac/dev/open_source/background-message/utils/timelimits-service')
   // @ts-ignore
-  export type { FaviconInfo, PageView, SessionData, TimeLimits, Watch } from '/Users/mac/dev/open_source/background-message/utils/types'
+  export type { FaviconInfo, PageView, SessionData, TimeLimits, Watch, TimeLimitInput } from '/Users/mac/dev/open_source/background-message/utils/types'
   import('/Users/mac/dev/open_source/background-message/utils/types')
   // @ts-ignore
   export type { WatchService } from '/Users/mac/dev/open_source/background-message/utils/watch-service'

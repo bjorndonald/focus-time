@@ -1,40 +1,108 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import LimitItem from '../components/LimitItem'
+import { TimeLimits } from '@/utils/types'
+import PlaceholderGraphic from '../components/PlaceholderGraphic'
+import { ChevronRight, Pencil, Plus } from 'lucide-react'
+import { PERMANENT_LIMIT, SCHEDULED_LIMIT } from '../utils/strings'
+import EditLimitModal from '../components/EditLimitModal'
 
 const LimitsPage = () => {
-  return (
-      <div className='pt-6 pb-12 px-6'>
-          <div className="flex items-center justify-between ">
-              <h4>Usage Limits</h4>
+ const [selectedLimit, setSelectedLimit] = useState<TimeLimits | null>()
+  const [showAddLimit, setshowAddLimit] = useState(false)
+  const [limits, setLimits] = useState<TimeLimits[]>([
+  ])
 
-              <div className="flex items-center justify-between">
-                  <div className="dropdown">
-                      <div tabIndex={0} role="button" className="btn m-1">Click</div>
-                      <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                          <li><a>Usage Time</a></li>
-                          <li><a>Session</a></li>
-                      </ul>
-                  </div>
-                  <div className="dropdown">
-                      <div tabIndex={0} role="button" className="btn m-1">Click</div>
-                      <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                          <li><a>Today</a></li>
-                          <li><a>Yesterday</a></li>
-                          <li><a>Last week</a></li>
-                      </ul>
-                  </div>
-              </div>
+  useEffect(() => {
+    const init = async () => {
+      const response = await browser.runtime.sendMessage({ type: "getTimeLimits", timestamp: Date.now() }) as ServiceResponse<TimeLimits[]>
+      if(!!response.data)
+      setLimits(response.data)
+    }
+
+    init()
+
+    return () => {
+      
+    }
+  }, [])
+  
+
+  return (
+    <div className='pt-6 flex relative w-full h-full justify-center pb-12 px-6'>
+      <EditLimitModal limit={selectedLimit} />
+      
+        <a href='#add-limit' className='btn fixed bottom-8 right-8 flex items-center justify-center btn-circle btn-lg btn-primary'>
+          <Plus />
+        </a>
+        <div className="flex flex-1 flex-col gap-8 items-start ">
+          <h4 className='text-2xl text-left font-medium'>Usage Limits</h4>
+
+          <div className="flex w-full h-full flex-col gap-3">
+            
+
+            {!limits.length && <div className="flex-1 flex justify-center px-20 items-center">
+                      <PlaceholderGraphic />
+                  </div> }
+
+            {!!limits.filter(x => x.type === SCHEDULED_LIMIT).length && 
+            <div className="flex flex-col gap-4">
+              <h6 className='text-xs uppercase text-base-content/70 font-bold'>Blocked at certain times</h6>
+              {limits.filter(x => x.type === SCHEDULED_LIMIT).map((x, i) => (
+                <>
+                  <LimitItem
+                    key={i}
+                    limit={x}
+                    type={x.type}
+                    onToggleClicked={async () => {
+                      await browser.runtime.sendMessage({ type: "toggleTimeLimit", data: { id: x.id }, timestamp: Date.now() })
+                     }}
+                    onEditClicked={() => { 
+                      (document.getElementById('edit-limit') as any)?.showModal()
+                     }}
+                    onDeleteClicked={async () => { 
+                      await browser.runtime.sendMessage({ type: "deleteTimeLimit", data: { id: x.id }, timestamp: Date.now() })
+                     }}
+                  />
+                </>
+               
+              ))}
+            </div>
+             }
+
           </div>
-          <div className="flex flex-col gap-5">
-              <h4>BLOCKED AT CERTAIN TIMES</h4>
-              <div className="flex flex-col gap-4">
-                  <LimitItem />
-                  <LimitItem />
-                  <LimitItem />
-                  <LimitItem />
-              </div>
-          </div>
-      </div>
+          
+        {!!limits.filter(x => x.type === PERMANENT_LIMIT).length && 
+          <div className="flex w-full flex-col gap-3">
+            <h6 className='text-xs uppercase text-base-content/70 font-bold'>Blocked permanently</h6>
+            <div className="flex flex-col gap-4">
+              {limits.filter(x => x.type === PERMANENT_LIMIT).map((x, i) => (
+                <>
+
+                  <LimitItem
+                    key={i}
+                    limit={x}
+                    type='permanent'
+                    onToggleClicked={async () => { 
+                      await browser.runtime.sendMessage({ type: "toggleTimeLimit", data: { id: x.id }, timestamp: Date.now() })
+                    }}
+                    onEditClicked={() => {
+                      setSelectedLimit(x);
+                      (document.getElementById('edit-limit') as any)?.showModal()
+                    }}
+                    onDeleteClicked={async () => {
+                      // deleteTimeLimit
+                      await browser.runtime.sendMessage({ type: "deleteTimeLimit", data: {id: x.id}, timestamp: Date.now() })
+                     }}
+                  />
+                </>
+
+              ))}
+            </div>
+          </div>}
+        </div>
+    
+
+    </div>
   )
 }
 

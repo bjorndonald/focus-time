@@ -1,22 +1,63 @@
-import React from 'react'
-import { Pencil, Trash } from 'lucide-react'
+import { Calendar, Globe, Pencil, Trash } from 'lucide-react'
+import { TimeLimits } from '@/utils/types'
+import { useEffect, useState } from 'react'
 
-const LimitItem = () => {
+interface Props {
+    limit: TimeLimits
+    type: string
+    onEditClicked: () => void
+    onDeleteClicked: () => void
+    onToggleClicked: () => void
+}
+
+const LimitItem = ({ type, limit, onEditClicked, onDeleteClicked, onToggleClicked }: Props) => {
+    const [favIcons, setFavIcons] = useState<string[]>([])
+    if (limit.type !== type) {
+        return null
+    }
+
+    const retrieveFavicon = async () => {
+        await Promise.all(limit.apps.map(async (x) => {
+            const response = await browser.runtime.sendMessage({ type: "getFavIcon", id: x, timestamp: Date.now() }) as ServiceResponse<string>
+            setFavIcons([...favIcons, response.data ?? ""])
+        }))
+    }
+
+    useEffect(() => {
+        retrieveFavicon()
+
+        return () => {
+            setFavIcons([])
+        }
+    }, [])
+
     return (
-        <div className='limit flex justify-between items-center'>
-            <div className="flex items-center">
-                <img src="" alt="" />
-                <span>x.com</span>
-                <svg viewBox="0 0 24 24" width="1.2em" height="1.2em" className="mr-2 icon text-neutral-content"><path fill="currentColor" d="M15 13h1.5v2.82l2.44 1.41l-.75 1.3L15 16.69zm4-5H5v11h4.67c-.43-.91-.67-1.93-.67-3a7 7 0 0 1 7-7c1.07 0 2.09.24 3 .67zM5 21a2 2 0 0 1-2-2V5c0-1.11.89-2 2-2h1V1h2v2h8V1h2v2h1a2 2 0 0 1 2 2v6.1c1.24 1.26 2 2.99 2 4.9a7 7 0 0 1-7 7c-1.91 0-3.64-.76-4.9-2zm11-9.85A4.85 4.85 0 0 0 11.15 16c0 2.68 2.17 4.85 4.85 4.85A4.85 4.85 0 0 0 20.85 16c0-2.68-2.17-4.85-4.85-4.85"></path></svg>
+        <div className='limit rounded-lg bg-base-200 p-4 my-1 flex justify-between items-center'>
+            <div className="flex gap-3 items-center">
+                {favIcons.length > 1 ? <div className='grid grid-cols-2 grid-rows-2 relative overflow-hidden gap-0.5 mr-2'>
+                    {!!favIcons[0] ? <img src={favIcons[0]} className='w-4 h-4 rounded' alt={limit.apps[0]} /> : <Globe />}
+                    {!!favIcons[1] ? <img src={favIcons[1]} className='w-4 h-4 rounded' alt={limit.apps[1]} /> : <Globe />}
+                    {!!favIcons[2] ? <img src={favIcons[2]} className='w-4 h-4 rounded' alt={limit.apps[2]} /> : <Globe />}
+                    {!!favIcons[3] ? <img src={favIcons[3]} className='w-4 h-4 rounded' alt={limit.apps[3]} /> : <Globe />}
+
+                </div>
+                    :
+                    favIcons.length > 0 ?
+                        !!favIcons[0] ?
+                            <img src={favIcons[0]} className='w-8 h-8' alt="x.com" /> : <Globe />
+                        : <Globe  />}
+
+                <span className='text-base'>{limit.name}</span>
+                {type === "scheduled" ? <Calendar color='#D1D1D1' /> : null}
             </div>
             <div className="flex items-center gap-2">
-                <a href="" className='btn btn-sm btn-circle btn-ghost'>
-                    <Pencil />
+                <a onClick={onEditClicked} className='btn btn-sm  btn-circle btn-ghost flex items-center justify-center'>
+                    <Pencil size={16} />
                 </a>
-                <a href="" className='btn btn-sm btn-circle btn-ghost'>
-                    <Trash />
+                <a onClick={onDeleteClicked} className='btn btn-sm  btn-circle btn-ghost flex items-center justify-center'>
+                    <Trash size={16} />
                 </a>
-                <input type="checkbox" className="toggle" defaultChecked />
+                <input type="checkbox" onChange={() => onToggleClicked()} className="toggle toggle-sm toggle-primary" checked={limit.active} />
             </div>
         </div>
     )
