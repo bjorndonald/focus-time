@@ -90,7 +90,7 @@ const LimitsPage = () => {
                       (document.getElementById('edit-limit') as any)?.showModal()
                     }}
                     onDeleteClicked={async () => {
-                      // deleteTimeLimit
+                     
                       await browser.runtime.sendMessage({ type: "deleteTimeLimit", data: {id: x.id}, timestamp: Date.now() })
                      }}
                   />
